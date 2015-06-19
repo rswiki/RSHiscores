@@ -69,6 +69,42 @@ class RSHiscores {
 	}
 
 	/**
+	 * Lookup hiscores data from object cache before retrieving from the site.
+	 *
+	 * @param string $hs Which hiscores API to retrieve from.
+	 * @param string $player Player's display name.
+	 * @return string Raw hiscores data
+	 */
+	private static function lookupHiscores( $hs, $player ) {
+		// Instance of the object cache to retrieve the hiscores data from.
+		$objCache = wfGetCache( CACHE_ANYTHING );
+
+		// Try to retrieve the hiscores data from the object cache.
+		$data = $objCache->get( 'rshiscores-' . $player . '-' . $hs );
+
+		// Couldn't find in the object cache, so retrieve from the site.
+		if ( $data === false ) {
+			// If not blocked from too many requests or technical issues, then lookup.
+			if ( $objCache->get( 'rshiscores-blocked') === false ) {
+				$data = self::retrieveHiscores( $hs, $player );
+
+				// Request failed, so no requests for 15 min.
+				if ( $data == 'C28' ) {
+					$objCache->set( 'rshiscores-blocked', true, 60 * 15 );
+				}
+
+				// Cache the new results.
+				$objCache->set( 'rshiscores-' . $player . '-' . $hs, $data, 60 );
+			} else {
+				// This or a previous request failed, so hold off further requests for now.
+				$data = 'I';
+			}
+		}
+
+		return $data;
+	}
+
+	/**
 	 * Parse the hiscores data.
 	 *
 	 * @param string $data
@@ -138,8 +174,9 @@ class RSHiscores {
 			// Update the name limit counter.
 			self::$times++;
 
-			// Get the hiscores data from the site.
-			$data = self::retrieveHiscores( $hs, $player );
+			// Lookup the hiscores data from the object cache,
+			// if not found, then retrieve the data from the site.
+			$data = self::lookupHiscores( $hs, $player );
 
 			// escape the result as it's from an external API
 			$data = htmlspecialchars( $data, ENT_QUOTES );
@@ -147,6 +184,12 @@ class RSHiscores {
 			// Add the hiscores data to the cache.
 			self::$cache[$hs][$player] = $data;
 
+			// If blocked, then cache for only 15 minutes.
+			if ( $data == 'I' ) {
+				$output = $parser->getOutput();
+				if ( $output->isCacheable() && $output->getCacheExpiry() > 60 * 15 )
+					$output->updateCacheExpiry( 60 * 15 );
+			}
 		} else {
 			// The name limit set by $wgRSLimit was reached.
 			return 'E';
