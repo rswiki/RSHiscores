@@ -135,9 +135,6 @@ If an error occurs, then an error code will be returned. See [Errors](#errors) f
 \* Experience only applies to skill levels.
 
 ## Errors
-If there is an error in the usage or request, one of the following codes will be returned instead.
-
-## Errors
 If there is an error in the usage or request, a message describing the error will be returned instead.
 
 | Error No. | Message | Details |

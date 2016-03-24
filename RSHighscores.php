@@ -17,18 +17,18 @@ if ( !defined( 'MEDIAWIKI' ) ) {
 	die();
 }
 
-$wgExtensionCredits['parserhook'][] = array(
+$wgExtensionCredits['parserhook'][] = [
 	'path'			=> __FILE__,
 	'name'			=> 'RSHiscores',
 	'version'		=> '3.1.0',
 	'descriptionmsg'	=> 'rshiscores-desc',
 	'url'			=> 'https://github.com/rswiki/RSHiscores',
-	'author'		=> array(
+	'author'		=> [
 		'[http://runescape.wikia.com/wiki/User_talk:TehKittyCat TehKittyCat]',
 		'[http://runescape.wikia.com/wiki/User:Quarenon Quarenon]',
 		'[http://runescape.wikia.com/wiki/User:Cqm Cqm]',
-	),
-);
+	],
+];
 
 $wgAutoloadClasses['RSHiscores'] = __DIR__ . '/RSHighscores.body.php';
 
@@ -37,6 +37,8 @@ $wgExtensionMessagesFiles['RSHiscoresMagic'] = __DIR__ . '/RSHighscores.i18n.mag
 
 $wgHooks['ParserFirstCallInit'][] = 'RSHiscores::register';
 
+$wgTrackingCategories[] = 'rshiscores-error-category';
+
 /**
  * Defines the maximum number of names allowed per page to retrieve hiscores
  * data for. This is not a call limit. This is to prevent abuse, especially
@@ -44,3 +46,8 @@ $wgHooks['ParserFirstCallInit'][] = 'RSHiscores::register';
  * comparisons. Set to 0 to disable this limit. On Wikia the limit is set to 2.
  */
 $wgRSLimit = 2;
+
+/**
+ * Defines the amount of time in seonds allowed for each lookup before timing out.
+ */
+$wgRSTimeout = 5;
